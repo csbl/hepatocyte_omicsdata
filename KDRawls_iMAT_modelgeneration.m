@@ -8,18 +8,19 @@ clc
 
 % Read in cobra model from .mat file. Can also read in cobra model file
 % from excel
-
-% Read in iRno model from excel worksheet
-% ncomm_blais_xls2model and ncomm_blais_data_rno_cobra.xlsx are available
+% Model is apated form the iRno model from excel worksheet available
 % at https://github.com/csbl/ratcon1 and 
 % http://www.nature.com/articles/ncomms14250 from the published paper
 % "Reconciled rat and human metabolic networks for comparative 
 % toxicogenomics analyses and biomarker predictions" by Blais et al.
+% This model has genes specified for exchange reactions to include them for
+% TIMBR predictions for each metabolite. 
 
-rno_cobra_load = ncomm_blais_xls2model('ncomm_blais_data_rno_cobra.xlsx');
+load('rno_biomass_kdr.mat');
 
 % Change objective function to biomass
-rno_biomass_kdr = changeObjective(rno_cobra_load,'RCR99999');
+rno_biomass_kdr = changeObjective(rno_biomass_kdr,'RCR99999');
+[ex_a,ex_b,ex_c] = xlsread('Rawls_Supplementary_data6.xlsx','extra_genes_kdr');
 
 % Read in gene expression data
 apap_allgenes = xlsread('Rawls_Supplementary_data1.xlsx',2);
@@ -32,6 +33,7 @@ apap6_genes = cellstr(num2str(apap_allgenes(:,11)));
 ccl46_genes = cellstr(num2str(ccl4_allgenes(:,11)));
 tcdd6_genes = cellstr(num2str(tcdd_allgenes(:,11)));
 tce6_genes = cellstr(num2str(tce_allgenes(:,11)));
+exc_genes = ex_b;
 
 % Pull out False Discovery Rate values
 apap6_fdr = apap_allgenes(:,9);
@@ -63,11 +65,17 @@ all_genes = [apap6_genes; ccl46_genes; tcdd6_genes; tce6_genes];
 all_genes = strtrim(unique(all_genes));
 
 % Find all metabolic genes that are in the transcriptomics data
-[model_genes, model_idx] = intersect(all_genes,rno_cobra_load.genes,'stable');
+[model_genes, model_idx] = intersect(all_genes,rno_biomass_kdr.genes,'stable');
 
 % Create a logic vector to indicate which genes in the model found in the
 % experiment are differentially expressed or not.
 imat_data = ismember(model_genes,all_degs);
+
+% Update files to ensure exchagne reaction genes and data is present. 
+exc_data = ex_a(:,3);
+model_genes = [model_genes; exc_genes];
+imat_data = [imat_data; exc_data];
+
 
 % Create the iMAT data structure
 imat_struct = [];
@@ -82,4 +90,4 @@ initCobraToolbox
 
 % Save the model and list of reactions
 save('hepatocyte_imat_042519.mat','hepatocyte_imat')
-xlswrite('Rawls_Supplementary_data6.xlsx',hepatocyte_imat.rxns);
+xlswrite('Rawls_Supplementary_data6.xlsx',hepatocyte_imat.rxns,'iMAT_Rxns');
