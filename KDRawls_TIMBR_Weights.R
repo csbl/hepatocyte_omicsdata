@@ -38,7 +38,7 @@ rxn.info = rxn.info.load %>%
          n_rno = as.numeric(as.character(n_gene_rno)))
 
 # Pick a pruining method if desired
-subset_rxns <- readWorkbook("C:/Users/kr2up/Documents/MATLAB/Rawls_Supplementary_data6.xlsx",
+subset_rxns <- readWorkbook("C:/Users/kr2up/Documents/MATLAB/Rawls_Supplementary_data6.xlsx", sheet = 2,
        startRow = 1, colNames = FALSE) %>% as.tbl() %>% dplyr::rename("rxn_id" = X1)
 
 rxn.info <- inner_join(subset_rxns,rxn.info, by = "rxn_id")
