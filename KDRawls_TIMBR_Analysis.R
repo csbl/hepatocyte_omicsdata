@@ -54,7 +54,7 @@ expression.summary = expression.summary.load %>%
 
 
 # Determine rank by TIMBR Score
-timbr.compare = timbr.predictions %>% filter(drug_name != "gentamicin") %>% 
+timbr.compare = timbr.predictions %>%  
   semi_join(expression.summary %>% filter(drug_selected, dose_selected) %>% 
               select(organism_id, drug_id, time_id, dose_id) %>% distinct) %>%
   left_join(rxn.info %>% select(rxn_id, rxn_name, met)) %>% 
@@ -113,10 +113,26 @@ tce_dwn <- timbr.compare %>% filter(drug_id == "trichloroethylene_t1") %>% filte
 x <- calculate.overlap(list(apap_up,ccl4_up,tcdd_up,tce_up))
 y <- calculate.overlap(list(apap_dwn,ccl4_dwn,tcdd_dwn,tce_dwn))
 
+up.area1 <- length(apap_up)
+up.area2 <- length(ccl4_up)
+up.area3 <- length(tcdd_up)
+up.area4 <- length(tce_up)
+up.n12 <- length(intersect(apap_up,ccl4_up))
+up.n13 <- length(intersect(apap_up,tcdd_up))
+up.n14 <- length(intersect(apap_up,tce_up))
+up.n23 <- length(intersect(ccl4_up,tcdd_up))
+up.n24 <- length(intersect(ccl4_up,tce_up))
+up.n34 <- length(intersect(tcdd_up,tce_up))
+up.n123 <- length(x$a12) + length(x$a6)
+up.n124 <- length(x$a11) + length(x$a6)
+up.n134 <- length(x$a5) + length(x$a6)
+up.n234 <- length(x$a7) + length(x$a6)
+up.n1234 <- length(x$a6)
 
 # Create Figure 4B, TIMBR Up Scores
-f4.11 <- as_ggplot(draw.quad.venn(area1 = 77, area2 = 96, area3 = 92,area4 = 105, 
-        n12 = 26, n13 = 44, n14 = 39, n23 = 48, n24 = 54, n34 = 52, n123 = 18, n124 = 15, n134 = 22, n234 = 34, n1234 = 11,
+f4.11 <- as_ggplot(draw.quad.venn(area1 = up.area1, area2 = up.area2, area3 = up.area3, area4 = up.area4, 
+        n12 = up.n12, n13 = up.n13, n14 = up.n14, n23 = up.n23, n24 = up.n24, n34 = up.n34, n123 = up.n123, 
+        n124 = up.n124, n134 = up.n134, n234 = up.n234, n1234 = up.n1234,
         category = c("APAP",expression(paste("CCl"[4]*"")),"TCDD","TCE"),
         fill = c("Purple","grey","Green","orange"), alpha = 0.4, fontface = rep("plain",15), fontfamily = rep("sans",15),  
         cex = rep(4,15), cat.cex = c(3,3,3,3), cat.fontface = rep("plain",4), cat.fontfamily = rep("sans",4))) 
@@ -126,9 +142,27 @@ f4.12 <- as.ggplot(f4.11) + ggtitle("Metabolites predicted to increase")+
   theme(plot.title = element_text(hjust = 0.5, size = 36, family = "Arial", face = "bold"))
 f4.12
 
+
+dwn.area1 <- length(apap_dwn)
+dwn.area2 <- length(ccl4_dwn)
+dwn.area3 <- length(tcdd_dwn)
+dwn.area4 <- length(tce_dwn)
+dwn.n12 <- length(intersect(apap_dwn,ccl4_dwn))
+dwn.n13 <- length(intersect(apap_dwn,tcdd_dwn))
+dwn.n14 <- length(intersect(apap_dwn,tce_dwn))
+dwn.n23 <- length(intersect(ccl4_dwn,tcdd_dwn))
+dwn.n24 <- length(intersect(ccl4_dwn,tce_dwn))
+dwn.n34 <- length(intersect(tcdd_dwn,tce_dwn))
+dwn.n123 <- length(y$a12) + length(y$a6)
+dwn.n124 <- length(y$a11) + length(y$a6)
+dwn.n134 <- length(y$a5) + length(y$a6)
+dwn.n234 <- length(y$a7) + length(y$a6)
+dwn.n1234 <- length(y$a6) 
+
 # Create Figure 4C, TIMBR Down Scores
-f4.21 <- as_ggplot(draw.quad.venn(area1 = 116, area2 = 97, area3 = 101,area4 = 88, 
-        n12 = 47, n13 = 69, n14 = 50, n23 = 54, n24 = 46, n34 = 48, n123 = 30, n124 = 20, n134 = 33, n234 = 21, n1234 = 10,
+f4.21 <- as_ggplot(draw.quad.venn(area1 = dwn.area1, area2 = dwn.area2, area3 = dwn.area3, area4 = dwn.area4, 
+        n12 = dwn.n12, n13 = dwn.n13, n14 = dwn.n14, n23 = dwn.n23, n24 = dwn.n24, n34 = dwn.n34, 
+        n123 = dwn.n123, n124 = dwn.n124, n134 = dwn.n134, n234 = dwn.n234, n1234 = dwn.n1234,
         category = c("APAP",expression(paste("CCl"[4]*"")),"TCDD","TCE"),
         fill = c("Purple","grey","Green","orange"), alpha = 0.4, fontface = rep("plain",15), fontfamily = rep("sans",15),  
         cex = rep(4,15), cat.cex = c(3,3,3,3), cat.fontface = rep("plain",4), cat.fontfamily = rep("sans",4))) 
@@ -390,7 +424,7 @@ f5.1 <- ggplot(metaframe,aes(x = x, y = y)) +
   scale_x_continuous(breaks = seq(0,9,3), labels = c(acetaminophen_t1 = expression(paste("APAP 6hr")),
                                                      carbontetrachloride_t1 = expression(paste("CCl"[4]*" 6hr")),TCDD_t1 = expression(paste("TCDD 6hr")),
                                                      trichloroethylene_t1 = expression(paste("TCE 6hr"))), expand = c(0,0)) + 
-  scale_y_continuous(limits = c(-1,62),breaks = seq(0,62,3), labels = sort(unique(full_validation$met), decreasing = TRUE),expand = c(0,0)) + 
+  scale_y_continuous(limits = c(-1,59),breaks = seq(0,59,3), labels = sort(unique(full_validation$met), decreasing = TRUE),expand = c(0,0)) + 
   geom_polygon(color = "gray1",aes(fill = metaframe$filler, group = metaframe$id), alpha = 1) +
   theme_bw() + theme(panel.border = element_blank()) + theme(legend.title = element_blank()) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
